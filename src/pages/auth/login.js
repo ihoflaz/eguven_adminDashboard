@@ -25,8 +25,6 @@ const Page = () => {
   const [method, setMethod] = useState('email');
   const formik = useFormik({
     initialValues: {
-      email: 'admin@admin.com',
-      password: 'admin',
       submit: null
     },
     validationSchema: Yup.object({
@@ -86,10 +84,25 @@ const Page = () => {
           <div>
             <Stack
               spacing={1}
-              sx={{ mb: 3 }}
+              sx={{ mb: 1 }}
             >
               <Typography variant="h4">
                 Login
+              </Typography>
+              <Typography
+                color="text.secondary"
+                variant="body2"
+              >
+                Don&apos;t have an account?
+                &nbsp;
+                <Link
+                  component={NextLink}
+                  href="/auth/register"
+                  underline="hover"
+                  variant="subtitle2"
+                >
+                  Register
+                </Link>
               </Typography>
             </Stack>
             <Tabs
@@ -117,7 +130,6 @@ const Page = () => {
                     onBlur={formik.handleBlur}
                     onChange={formik.handleChange}
                     type="email"
-                    value={formik.values.email}
                   />
                   <TextField
                     error={!!(formik.touched.password && formik.errors.password)}
@@ -128,7 +140,6 @@ const Page = () => {
                     onBlur={formik.handleBlur}
                     onChange={formik.handleChange}
                     type="password"
-                    value={formik.values.password}
                   />
                 </Stack>
                 {formik.errors.submit && (
@@ -150,19 +161,6 @@ const Page = () => {
                   Continue
                 </Button>
               </form>
-            )}
-            {method === 'phoneNumber' && (
-              <div>
-                <Typography
-                  sx={{ mb: 1 }}
-                  variant="h6"
-                >
-                  Not available in the demo
-                </Typography>
-                <Typography color="text.secondary">
-                  To prevent unnecessary costs we disabled this feature in the demo.
-                </Typography>
-              </div>
             )}
           </div>
         </Box>

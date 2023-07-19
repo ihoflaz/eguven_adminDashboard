@@ -12,21 +12,46 @@ const Page = () => {
   const auth = useAuth();
   const formik = useFormik({
     initialValues: {
+      companyName: '',
+      companyAddress: '',
+      companyPhone: '',
+      firstName: '',
+      lastName: '',
       email: '',
-      name: '',
+      phone: '',
       password: '',
       submit: null
     },
     validationSchema: Yup.object({
+      companyName: Yup
+        .string()
+        .max(255)
+        .required('Company Name is required'),
+      companyAddress: Yup
+        .string()
+        .max(255)
+        .required('Company Address is required'),
+      companyPhone: Yup
+        .string()
+        .max(255)
+        .required('Company Phone is required'),
+      firstName: Yup
+        .string()
+        .max(255)
+        .required('First Name is required'),
+      lastName: Yup
+        .string()
+        .max(255)
+        .required('Last Name is required'),
       email: Yup
         .string()
         .email('Must be a valid email')
         .max(255)
         .required('Email is required'),
-      name: Yup
+      phone: Yup
         .string()
         .max(255)
-        .required('Name is required'),
+        .required('Phone is required'),
       password: Yup
         .string()
         .max(255)
@@ -34,8 +59,17 @@ const Page = () => {
     }),
     onSubmit: async (values, helpers) => {
       try {
-        await auth.signUp(values.email, values.name, values.password);
-        router.push('/');
+        await auth.signUp(
+          values.companyName,
+          values.companyAddress,
+          values.companyPhone,
+          values.firstName,
+          values.lastName,
+          values.email,
+          values.phone,
+          values.password
+        );
+        router.push('/auth/login');
       } catch (err) {
         helpers.setStatus({ success: false });
         helpers.setErrors({ submit: err.message });
@@ -97,14 +131,54 @@ const Page = () => {
             >
               <Stack spacing={3}>
                 <TextField
-                  error={!!(formik.touched.name && formik.errors.name)}
+                error={Boolean(formik.touched.companyName && formik.errors.companyName)}
+                fullWidth
+                helperText={formik.touched.companyName && formik.errors.companyName}
+                label="Company Name"
+                name="companyName"
+                onBlur={formik.handleBlur}
+                onChange={formik.handleChange}
+                value={formik.values.companyName}
+              />
+                <TextField
+                  error={Boolean(formik.touched.companyAddress && formik.errors.companyAddress)}
                   fullWidth
-                  helperText={formik.touched.name && formik.errors.name}
-                  label="Name"
-                  name="name"
+                  helperText={formik.touched.companyAddress && formik.errors.companyAddress}
+                  label="Company Address"
+                  name="companyAddress"
                   onBlur={formik.handleBlur}
                   onChange={formik.handleChange}
-                  value={formik.values.name}
+                  value={formik.values.companyAddress}
+                />
+                <TextField
+                  error={Boolean(formik.touched.companyPhone && formik.errors.companyPhone)}
+                  fullWidth
+                  helperText={formik.touched.companyPhone && formik.errors.companyPhone}
+                  label="Company Phone"
+                  name="companyPhone"
+                  onBlur={formik.handleBlur}
+                  onChange={formik.handleChange}
+                  value={formik.values.companyPhone}
+                />
+                <TextField
+                  error={Boolean(formik.touched.firstName && formik.errors.firstName)}
+                  fullWidth
+                  helperText={formik.touched.firstName && formik.errors.firstName}
+                  label="First Name"
+                  name="firstName"
+                  onBlur={formik.handleBlur}
+                  onChange={formik.handleChange}
+                  value={formik.values.firstName}
+                />
+                <TextField
+                  error={Boolean(formik.touched.lastName && formik.errors.lastName)}
+                  fullWidth
+                  helperText={formik.touched.lastName && formik.errors.lastName}
+                  label="Last Name"
+                  name="lastName"
+                  onBlur={formik.handleBlur}
+                  onChange={formik.handleChange}
+                  value={formik.values.lastName}
                 />
                 <TextField
                   error={!!(formik.touched.email && formik.errors.email)}
@@ -116,6 +190,16 @@ const Page = () => {
                   onChange={formik.handleChange}
                   type="email"
                   value={formik.values.email}
+                />
+                <TextField
+                  error={Boolean(formik.touched.phone && formik.errors.phone)}
+                  fullWidth
+                  helperText={formik.touched.phone && formik.errors.phone}
+                  label="Phone"
+                  name="phone"
+                  onBlur={formik.handleBlur}
+                  onChange={formik.handleChange}
+                  value={formik.values.phone}
                 />
                 <TextField
                   error={!!(formik.touched.password && formik.errors.password)}

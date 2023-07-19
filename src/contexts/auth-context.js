@@ -141,18 +141,52 @@ export const AuthProvider = (props) => {
       window.localStorage.setItem('role', result.role);
       window.sessionStorage.setItem('authenticated', 'true');
       dispatch({
-        type: HANDLERS.SIGN_IN,
+        type: HANDLERS.SIGN_IN
       });
     } else {
       throw new Error(result.error || 'Login failed'); // Hata mesajını döndür
     }
   };
 
-  const signUp = async (email, name, password) => {
-    throw new Error('Sign up is not implemented');
+  const signUp = async (companyName,
+    companyAddress,
+    companyPhone,
+    firstName,
+    lastName,
+    email,
+    phone,
+    password) => {
+    const response = await fetch('http://localhost:3000/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        companyName,
+        companyAddress,
+        companyPhone,
+        firstName,
+        lastName,
+        email,
+        phone,
+        password
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      return;
+    } else {
+      const result = await response.json();
+      throw new Error(result.message || 'Registration failed');
+    }
   };
 
   const signOut = () => {
+    window.localStorage.clear();
+    window.sessionStorage.clear();
+
     dispatch({
       type: HANDLERS.SIGN_OUT
     });

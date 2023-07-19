@@ -1,485 +1,227 @@
 import Head from 'next/head';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { subDays, subHours } from 'date-fns';
+import { Box, Container, Unstable_Grid2 as Grid } from '@mui/material';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
-import {
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Typography,
-  Button,
-  Box,
-  Container,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  TextField,
-  DialogActions,
-  Switch
-} from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { OverviewBudget } from 'src/sections/overview/overview-budget';
+import { OverviewLatestOrders } from 'src/sections/overview/overview-latest-orders';
+import { OverviewLatestProducts } from 'src/sections/overview/overview-latest-products';
+import { OverviewSales } from 'src/sections/overview/overview-sales';
+import { OverviewTasksProgress } from 'src/sections/overview/overview-tasks-progress';
+import { OverviewTotalCustomers } from 'src/sections/overview/overview-total-customers';
+import { OverviewTotalProfit } from 'src/sections/overview/overview-total-profit';
+import { OverviewTraffic } from 'src/sections/overview/overview-traffic';
 
-const Page = () => {
-  const [data, setData] = useState(null);
-  const [openCompanyDialog, setOpenCompanyDialog] = useState(false);
-  const [openUserDialog, setOpenUserDialog] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [companyData, setCompanyData] = useState({ name: '', address: '', phone: '' });
-  const [userData, setUserData] = useState({ firstName: '', lastName: '', email: '', phone: '' });
-  const router = useRouter();
-  const [openAddUserDialog, setOpenAddUserDialog] = useState(false);
-  const [newUserData, setNewUserData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    password: ''
-  });
+const now = new Date();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = window.localStorage.getItem('token');
-        const response = await fetch('http://localhost:3000/admin', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        const data = await response.json();
-        console.log('data', data);
-        setData(data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchData();
-  }, []);
-
-  const handleOpenCompanyDialog = (company) => {
-    setSelectedCompany(company);
-    setCompanyData({
-      name: company.name,
-      address: company.address || '',
-      phone: company.phone || ''
-    });
-    setOpenCompanyDialog(true);
-  };
-
-  const handleCloseCompanyDialog = () => {
-    setOpenCompanyDialog(false);
-  };
-
-  const handleSaveCompany = () => {
-    updateCompany(selectedCompany.id, companyData);
-    setOpenCompanyDialog(false);
-  };
-
-  const handleChangeCompanyData = (event) => {
-    setCompanyData((prevData) => ({
-      ...prevData,
-      [event.target.name]: event.target.value
-    }));
-  };
-
-  const handleOpenUserDialog = (user) => {
-    setSelectedUser(user);
-    setUserData({
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      phone: user.phone
-    });
-    setOpenUserDialog(true);
-  };
-
-  const handleCloseUserDialog = () => {
-    setOpenUserDialog(false);
-  };
-
-  const handleSaveUser = () => {
-    updateUser(selectedUser.id, userData);
-    setOpenUserDialog(false);
-  };
-
-  const handleChangeUserData = (event) => {
-    setUserData((prevData) => ({
-      ...prevData,
-      [event.target.name]: event.target.value
-    }));
-  };
-
-  const handleOpenAddUserDialog = (company) => {
-    setSelectedCompany(company);
-    setOpenAddUserDialog(true);
-  };
-
-  const handleCloseAddUserDialog = () => {
-    setOpenAddUserDialog(false);
-  };
-
-  const handleAddUser = async () => {
-    const userDataWithCompanyId = {
-      ...newUserData,
-      companyId: selectedCompany.id // add the companyId to the request body
-    };
-    console.log('userDataWithCompanyId', userDataWithCompanyId);
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/add_users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify(userDataWithCompanyId)
-      });
-
-      const newUser = await response.json();
-
-      if (response.ok) {
-        // Update the local state to reflect the new user
-        setData((prevData) => ({
-          ...prevData,
-          companies: prevData.companies.map((company) => company.id === selectedCompany.id ? {
-            ...company,
-            users: [...company.users, newUser]
-          } : company)
-        }));
-      } else {
-        // Handle error
-        console.error(newUser);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-
-    setOpenAddUserDialog(false);
-  };
-
-  const handleChangeNewUserData = (event) => {
-    setNewUserData((prevData) => ({
-      ...prevData,
-      [event.target.name]: event.target.value
-    }));
-  };
-
-  if (!data) {
-    return <div>Error: Data is not available</div>;
-  }
-
-  const updateCompany = async (id, data) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/company/' + id, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify(data)
-      });
-      const updatedCompany = await response.json();
-      setData((prevData) => ({
-        ...prevData,
-        companies: prevData.companies.map((company) => company.id === id ? updatedCompany : company)
-      }));
-    } catch (err) {
-      console.error(err);
-    }
-  };
-  const updateUser = async (id, data) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/user/' + id, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify(data)
-      });
-      const updatedUser = await response.json();
-      setData((prevData) => ({
-        ...prevData,
-        companies: prevData.companies.map((company) => ({
-          ...company,
-          users: company.users.map((user) => user.id === id ? updatedUser : user)
-        }))
-      }));
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleToggle = async (type, id, value) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/toggle/${type}/${id}/${value}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        }
-      });
-      if (response.ok) {
-        if (type === 'company') {
-          setData((prevData) => ({
-            ...prevData,
-            companies: prevData.companies.map((company) => company.id === id ? {
-              ...company,
-              active: value
-            } : company)
-          }));
-        } else if (type === 'user') {
-          setData((prevData) => ({
-            ...prevData,
-            companies: prevData.companies.map((company) => ({
-              ...company,
-              users: company.users.map((user) => user.id === id ? { ...user, active: value } : user)
-            }))
-          }));
-        }
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleESignButtonClick = (userId) => {
-    router.push(`/esign/${userId}`);
-  };
-
-  return (
-    <>
-      <Head>
-        <title>
-          Overview | Devias Kit
-        </title>
-      </Head>
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          py: 8
-        }}
-      >
-        <Container maxWidth="xl">
-          {data.companies.map((company) => (
-            <Accordion key={company.id}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon/>}
-                                sx={{ backgroundColor: '#fafafa' }}>
-                <Typography
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>{company.name}</Typography>
-                <Button onClick={() => handleOpenAddUserDialog(company)}>ADD</Button>
-                <Button onClick={() => handleOpenCompanyDialog(company)}>Edit</Button>
-                <Switch checked={company.active}
-                        onChange={() => handleToggle('company', company.id, !company.active)}/>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Typography>
-                  Address: {company.address}
-                  <br/>
-                  Phone: {company.phone}
-                </Typography>
-                {company.users && company.users.map((user) => (
-                  <Accordion key={user.id}
-                             disabled={!company.active}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon/>}
-                                      sx={{ backgroundColor: '#fafafa' }}>
-                      <Typography
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center'
-                        }}>{user.firstName} {user.lastName}</Typography>
-                      <Button onClick={() => handleESignButtonClick(user.id)}>E-Sign</Button>
-                      <Button onClick={() => handleOpenUserDialog(user)}>Edit</Button>
-                      <Switch checked={user.active}
-                              onChange={() => handleToggle('user',
-                                user.id,
-                                !user.active)}/>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <Typography>
-                        Email: {user.email}
-                        <br/>
-                        Phone: {user.phone}
-                      </Typography>
-                    </AccordionDetails>
-                  </Accordion>
-                ))}
-              </AccordionDetails>
-            </Accordion>
-          ))}
-        </Container>
-      </Box>
-
-      {/* Edit Company Dialog */}
-      <Dialog open={openCompanyDialog}
-              onClose={handleCloseCompanyDialog}>
-        <DialogTitle>Edit Company</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            name="name"
-            label="Name"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={companyData.name}
-            onChange={handleChangeCompanyData}
-          />
-          <TextField
-            margin="dense"
-            name="address"
-            label="Address"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={companyData.address}
-            onChange={handleChangeCompanyData}
-          />
-          <TextField
-            margin="dense"
-            name="phone"
-            label="Phone"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={companyData.phone}
-            onChange={handleChangeCompanyData}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseCompanyDialog}>Cancel</Button>
-          <Button onClick={handleSaveCompany}>Save</Button>
-        </DialogActions>
-      </Dialog>
-      {/* Edit User Dialog */}
-      <Dialog open={openUserDialog}
-              onClose={handleCloseUserDialog}>
-        <DialogTitle>Edit User</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            name="firstName"
-            label="First Name"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={userData.firstName}
-            onChange={handleChangeUserData}
-          />
-          <TextField
-            margin="dense"
-            name="lastName"
-            label="Last Name"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={userData.lastName}
-            onChange={handleChangeUserData}
-          />
-          <TextField
-            margin="dense"
-            name="email"
-            label="Email"
-            type="email"
-            fullWidth
-            variant="standard"
-            value={userData.email}
-            onChange={handleChangeUserData}
-          />
-          <TextField
-            margin="dense"
-            name="phone"
-            label="Phone"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={userData.phone}
-            onChange={handleChangeUserData}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseUserDialog}>Cancel</Button>
-          <Button onClick={handleSaveUser}>Save</Button>
-        </DialogActions>
-      </Dialog>
-      {/* Add User Dialog */}
-      <Dialog open={openAddUserDialog}
-              onClose={handleCloseAddUserDialog}>
-        <DialogTitle>Add User</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            name="firstName"
-            label="First Name"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={newUserData.firstName}
-            onChange={handleChangeNewUserData}
-          />
-          <TextField
-            margin="dense"
-            name="lastName"
-            label="Last Name"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={newUserData.lastName}
-            onChange={handleChangeNewUserData}
-          />
-          <TextField
-            margin="dense"
-            name="email"
-            label="Email"
-            type="email"
-            fullWidth
-            variant="standard"
-            value={newUserData.email}
-            onChange={handleChangeNewUserData}
-          />
-          <TextField
-            margin="dense"
-            name="phone"
-            label="Phone"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={newUserData.phone}
-            onChange={handleChangeNewUserData}
-          />
-          <TextField
-            margin="dense"
-            name="password"
-            label="Password"
-            type="password"
-            fullWidth
-            variant="standard"
-            value={newUserData.password}
-            onChange={handleChangeNewUserData}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseAddUserDialog}>Cancel</Button>
-          <Button onClick={handleAddUser}>Add</Button>
-        </DialogActions>
-      </Dialog>
-    </>
-  );
-};
+const Page = () => (
+  <>
+    <Head>
+      <title>
+        Overview | Devias Kit
+      </title>
+    </Head>
+    <Box
+      component="main"
+      sx={{
+        flexGrow: 1,
+        py: 8
+      }}
+    >
+      <Container maxWidth="xl">
+        <Grid
+          container
+          spacing={3}
+        >
+          <Grid
+            xs={12}
+            sm={6}
+            lg={3}
+          >
+            <OverviewBudget
+              difference={12}
+              positive
+              sx={{ height: '100%' }}
+              value="$24k"
+            />
+          </Grid>
+          <Grid
+            xs={12}
+            sm={6}
+            lg={3}
+          >
+            <OverviewTotalCustomers
+              difference={16}
+              positive={false}
+              sx={{ height: '100%' }}
+              value="1.6k"
+            />
+          </Grid>
+          <Grid
+            xs={12}
+            sm={6}
+            lg={3}
+          >
+            <OverviewTasksProgress
+              sx={{ height: '100%' }}
+              value={75.5}
+            />
+          </Grid>
+          <Grid
+            xs={12}
+            sm={6}
+            lg={3}
+          >
+            <OverviewTotalProfit
+              sx={{ height: '100%' }}
+              value="$15k"
+            />
+          </Grid>
+          <Grid
+            xs={12}
+            lg={8}
+          >
+            <OverviewSales
+              chartSeries={[
+                {
+                  name: 'This year',
+                  data: [18, 16, 5, 8, 3, 14, 14, 16, 17, 19, 18, 20]
+                },
+                {
+                  name: 'Last year',
+                  data: [12, 11, 4, 6, 2, 9, 9, 10, 11, 12, 13, 13]
+                }
+              ]}
+              sx={{ height: '100%' }}
+            />
+          </Grid>
+          <Grid
+            xs={12}
+            md={6}
+            lg={4}
+          >
+            <OverviewTraffic
+              chartSeries={[63, 15, 22]}
+              labels={['Desktop', 'Tablet', 'Phone']}
+              sx={{ height: '100%' }}
+            />
+          </Grid>
+          <Grid
+            xs={12}
+            md={6}
+            lg={4}
+          >
+            <OverviewLatestProducts
+              products={[
+                {
+                  id: '5ece2c077e39da27658aa8a9',
+                  image: '/assets/products/product-1.png',
+                  name: 'Healthcare Erbology',
+                  updatedAt: subHours(now, 6).getTime()
+                },
+                {
+                  id: '5ece2c0d16f70bff2cf86cd8',
+                  image: '/assets/products/product-2.png',
+                  name: 'Makeup Lancome Rouge',
+                  updatedAt: subDays(subHours(now, 8), 2).getTime()
+                },
+                {
+                  id: 'b393ce1b09c1254c3a92c827',
+                  image: '/assets/products/product-5.png',
+                  name: 'Skincare Soja CO',
+                  updatedAt: subDays(subHours(now, 1), 1).getTime()
+                },
+                {
+                  id: 'a6ede15670da63f49f752c89',
+                  image: '/assets/products/product-6.png',
+                  name: 'Makeup Lipstick',
+                  updatedAt: subDays(subHours(now, 3), 3).getTime()
+                },
+                {
+                  id: 'bcad5524fe3a2f8f8620ceda',
+                  image: '/assets/products/product-7.png',
+                  name: 'Healthcare Ritual',
+                  updatedAt: subDays(subHours(now, 5), 6).getTime()
+                }
+              ]}
+              sx={{ height: '100%' }}
+            />
+          </Grid>
+          <Grid
+            xs={12}
+            md={12}
+            lg={8}
+          >
+            <OverviewLatestOrders
+              orders={[
+                {
+                  id: 'f69f88012978187a6c12897f',
+                  ref: 'DEV1049',
+                  amount: 30.5,
+                  customer: {
+                    name: 'Ekaterina Tankova'
+                  },
+                  createdAt: 1555016400000,
+                  status: 'pending'
+                },
+                {
+                  id: '9eaa1c7dd4433f413c308ce2',
+                  ref: 'DEV1048',
+                  amount: 25.1,
+                  customer: {
+                    name: 'Cao Yu'
+                  },
+                  createdAt: 1555016400000,
+                  status: 'delivered'
+                },
+                {
+                  id: '01a5230c811bd04996ce7c13',
+                  ref: 'DEV1047',
+                  amount: 10.99,
+                  customer: {
+                    name: 'Alexa Richardson'
+                  },
+                  createdAt: 1554930000000,
+                  status: 'refunded'
+                },
+                {
+                  id: '1f4e1bd0a87cea23cdb83d18',
+                  ref: 'DEV1046',
+                  amount: 96.43,
+                  customer: {
+                    name: 'Anje Keizer'
+                  },
+                  createdAt: 1554757200000,
+                  status: 'pending'
+                },
+                {
+                  id: '9f974f239d29ede969367103',
+                  ref: 'DEV1045',
+                  amount: 32.54,
+                  customer: {
+                    name: 'Clarke Gillebert'
+                  },
+                  createdAt: 1554670800000,
+                  status: 'delivered'
+                },
+                {
+                  id: 'ffc83c1560ec2f66a1c05596',
+                  ref: 'DEV1044',
+                  amount: 16.76,
+                  customer: {
+                    name: 'Adam Denisov'
+                  },
+                  createdAt: 1554670800000,
+                  status: 'delivered'
+                }
+              ]}
+              sx={{ height: '100%' }}
+            />
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
+  </>
+);
 
 Page.getLayout = (page) => (
   <DashboardLayout>
@@ -488,4 +230,3 @@ Page.getLayout = (page) => (
 );
 
 export default Page;
-

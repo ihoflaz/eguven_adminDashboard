@@ -1,12 +1,10 @@
-import { useRouter } from 'next/router';
 import { useEffect, useCallback, useMemo, useState } from 'react';
 import Head from 'next/head';
 import { Box, Container } from '@mui/material';
 import { useSelection } from 'src/hooks/use-selection';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
-import { EsignsTable } from '../../sections/esign/esign-table';
+import { EsignsTable } from '../sections/esign/esign-table';
 import { applyPagination } from 'src/utils/apply-pagination';
-
 
 const useEsigns = (data, page, rowsPerPage) => {
   return useMemo(() => {
@@ -24,8 +22,6 @@ const useEsignIds = (esigns) => {
 };
 
 const Page = () => {
-  const router = useRouter();
-  const { userId } = router.query;
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -35,26 +31,21 @@ const Page = () => {
   const esignsSelection = useSelection(esignsIds);
 
   useEffect(() => {
-    if (!userId) {
-      console.log('No user id provided');
-      return;
-    }
-
     const fetchData = async () => {
       try {
         setLoading(true);
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:3000/esign/' + userId, {
-          method: 'POST',
+        const response = await fetch('http://localhost:3000/esigns', {
+          method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
         const data = await response.json();
-        setData(data.data);
+        setData(data.esigns);
 
         // Call your functions here
-        const esigns = applyPagination(data.data, page, rowsPerPage);
+        const esigns = applyPagination(data.esigns, page, rowsPerPage);
         setEsigns(esigns);
 
         const esignsIds = esigns.map((esign) => esign.id);
@@ -67,7 +58,7 @@ const Page = () => {
       }
     };
     fetchData();
-  }, [userId, page, rowsPerPage]);
+  }, [page, rowsPerPage]);
 
   const handlePageChange = useCallback(
     (event, value) => {
