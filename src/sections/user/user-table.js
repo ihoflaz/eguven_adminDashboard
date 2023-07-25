@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import {
   Box,
@@ -29,10 +29,8 @@ export const UsersTable = (props) => {
     page = 0,
     rowsPerPage = 0,
     selected = [],
-    users,
     setUsers
   } = props;
-  console.log('initialData: ', initialData);
 
   const [data, setData] = useState(initialData);
   const router = useRouter();
@@ -66,7 +64,7 @@ export const UsersTable = (props) => {
     setOpenPermissionDialog(true);
   };
 
-  // function to handle close dialog
+// function to handle close dialog
   const handleClosePermissionDialog = () => {
     setOpenPermissionDialog(false);
   };
@@ -76,13 +74,42 @@ export const UsersTable = (props) => {
     // Split the name into category and action
     const [category, action] = event.target.name.split('.');
 
-    setUserPermissions((prevPermissions) => ({
-      ...prevPermissions,
-      [category]: {
-        ...prevPermissions[category],
-        [action]: event.target.checked
-      }
-    }));
+    // If user tries to select 'order:create' along with other permissions
+    if (action === 'create' && category === 'order' && event.target.checked) {
+      // Deselect all other permissions
+      setUserPermissions({
+        order: {
+          create: true,
+          read: false,
+          update: false,
+          delete: false
+        },
+        user: {
+          create: false,
+          read: false,
+          update: false,
+          delete: false
+        }
+      });
+
+      // Show a warning
+      alert('If you select "order:create", all other permissions will be deselected.');
+    }
+    // If user tries to select a permission other than 'order:create' when 'order:create' is selected
+    else if (userPermissions.order.create && event.target.checked) {
+      // Don't allow the selection and show a warning
+      event.preventDefault();
+      alert('You cannot select other permissions along with "order:create".');
+    }
+    else {
+      setUserPermissions((prevPermissions) => ({
+        ...prevPermissions,
+        [category]: {
+          ...prevPermissions[category],
+          [action]: event.target.checked
+        }
+      }));
+    }
   };
 
   const handlePermissions = (user) => {
@@ -154,25 +181,16 @@ export const UsersTable = (props) => {
       [event.target.name]: event.target.value
     }));
   };
-
   const handleSavePermissions = async () => {
-    const permissionsIds = [];
+    const permissions = [];
     for (const category in userPermissions) {
       for (const action in userPermissions[category]) {
         if (userPermissions[category][action]) {
-          // Find the permission in the user's permissions
-          const permission = selectedUser.UserPermission.find(
-            (p) => `${category}:${action}` === p.permission.name
-          );
-
-          // If the permission exists, add its ID to the array
-          if (permission) {
-            permissionsIds.push(permission.permission.id);
-          }
+          permissions.push(`${category}:${action}`);
         }
       }
     }
-    console.log('permissionsIds: ', permissionsIds);
+    console.log('permissions: ', permissions);
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:3000/permission/' + selectedUser.id, {
@@ -181,13 +199,17 @@ export const UsersTable = (props) => {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + token
         },
-        body: JSON.stringify({ permissionsIds })
+        body: JSON.stringify({ permissions })
       });
       if (response.ok) {
         // success
+        const updatedUserPermissions = await response.json();
+        setUsers((prevUsers) => prevUsers.map((user) => user.id === selectedUser.id
+          ? { ...user, UserPermission: updatedUserPermissions }
+          : user));
         setOpenPermissionDialog(false);
       } else {
-        // handle error
+        console.error(response);
       }
     } catch (err) {
       console.error(err);
@@ -206,11 +228,7 @@ export const UsersTable = (props) => {
         body: JSON.stringify(data)
       });
       const updatedUser = await response.json();
-      console.log('updatedUser: ', updatedUser);
-      console.log('data: ', data);
-
       setUsers((prevUsers) => prevUsers.map((user) => user.id === id ? updatedUser : user));
-
     } catch (err) {
       console.error(err);
     }
@@ -339,7 +357,8 @@ export const UsersTable = (props) => {
           <Button onClick={handleSaveUser}>Save</Button>
         </DialogActions>
       </Dialog>
-      <Dialog open={openPermissionDialog} onClose={handleClosePermissionDialog}>
+      <Dialog open={openPermissionDialog}
+              onClose={handleClosePermissionDialog}>
         <DialogTitle>Yetkilendirme</DialogTitle>
         <DialogContent>
           <Typography variant="h6">Orders</Typography>
@@ -347,22 +366,26 @@ export const UsersTable = (props) => {
             <Stack direction={'row'}>
               <FormControlLabel
                 control={<Checkbox checked={userPermissions.order.create}
-                                   onChange={handlePermissionChange} name="order.create"/>}
+                                   onChange={handlePermissionChange}
+                                   name="order.create"/>}
                 label="Create"
               />
               <FormControlLabel
                 control={<Checkbox checked={userPermissions.order.read}
-                                   onChange={handlePermissionChange} name="order.read"/>}
+                                   onChange={handlePermissionChange}
+                                   name="order.read"/>}
                 label="Read"
               />
               <FormControlLabel
                 control={<Checkbox checked={userPermissions.order.update}
-                                   onChange={handlePermissionChange} name="order.update"/>}
+                                   onChange={handlePermissionChange}
+                                   name="order.update"/>}
                 label="Update"
               />
               <FormControlLabel
                 control={<Checkbox checked={userPermissions.order.delete}
-                                   onChange={handlePermissionChange} name="order.delete"/>}
+                                   onChange={handlePermissionChange}
+                                   name="order.delete"/>}
                 label="Delete"
               />
             </Stack>
@@ -372,22 +395,26 @@ export const UsersTable = (props) => {
             <Stack direction={'row'}>
               <FormControlLabel
                 control={<Checkbox checked={userPermissions.user.create}
-                                   onChange={handlePermissionChange} name="user.create"/>}
+                                   onChange={handlePermissionChange}
+                                   name="user.create"/>}
                 label="Create"
               />
               <FormControlLabel
                 control={<Checkbox checked={userPermissions.user.read}
-                                   onChange={handlePermissionChange} name="user.read"/>}
+                                   onChange={handlePermissionChange}
+                                   name="user.read"/>}
                 label="Read"
               />
               <FormControlLabel
                 control={<Checkbox checked={userPermissions.user.update}
-                                   onChange={handlePermissionChange} name="user.update"/>}
+                                   onChange={handlePermissionChange}
+                                   name="user.update"/>}
                 label="Update"
               />
               <FormControlLabel
                 control={<Checkbox checked={userPermissions.user.delete}
-                                   onChange={handlePermissionChange} name="user.delete"/>}
+                                   onChange={handlePermissionChange}
+                                   name="user.delete"/>}
                 label="Delete"
               />
             </Stack>

@@ -4,7 +4,7 @@ import ListBulletIcon from '@heroicons/react/24/solid/ListBulletIcon';
 import BuildingOffice2Icon from '@heroicons/react/24/solid/BuildingOffice2Icon';
 import { SvgIcon } from '@mui/material';
 
-export const items = [
+export const baseItems = [
   {
     title: 'Overview',
     path: '/',
@@ -39,6 +39,7 @@ export const items = [
       <SvgIcon fontSize="small">
         <BuildingOffice2Icon />
       </SvgIcon>
-    )
+    ),
+    permission: 'company:read'
   }
 ];

@@ -10,43 +10,49 @@ const HANDLERS = {
 const initialState = {
   isAuthenticated: false,
   isLoading: true,
-  user: null
+  user: null,
+  permissions: []  // Permissions state added
 };
 
 const handlers = {
   [HANDLERS.INITIALIZE]: (state, action) => {
-    const user = action.payload;
+    if (!action.payload) {
+      return {
+        ...state,
+        isLoading: false
+      };
+    }
+
+    const { user, permissions } = action.payload;
 
     return {
       ...state,
-      ...(
-        // if payload (user) is provided, then is authenticated
-        user
-          ? ({
-            isAuthenticated: true,
-            isLoading: false,
-            user
-          })
-          : ({
-            isLoading: false
-          })
-      )
+      ...(user ? {
+        isAuthenticated: true,
+        isLoading: false,
+        user,
+        permissions
+      } : {
+        isLoading: false
+      })
     };
   },
   [HANDLERS.SIGN_IN]: (state, action) => {
-    const user = action.payload;
+    const { user, permissions } = action.payload;
 
     return {
       ...state,
       isAuthenticated: true,
-      user
+      user,
+      permissions  // Permissions added to state
     };
   },
   [HANDLERS.SIGN_OUT]: (state) => {
     return {
       ...state,
       isAuthenticated: false,
-      user: null
+      user: null,
+      permissions: []  // Reset permissions on sign out
     };
   }
 };
@@ -63,6 +69,27 @@ export const AuthProvider = (props) => {
   const { children } = props;
   const [state, dispatch] = useReducer(reducer, initialState);
   const initialized = useRef(false);
+
+  const fetchPermissions = async () => {
+    try {
+      const token = window.localStorage.getItem('token');
+      // fetch permissions from your API
+      const res = await fetch('http://localhost:3000/permissions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!res.ok) {
+        throw new Error('Yetkiler alınırken bir hata oluştu');
+      }
+      const data = await res.json();
+      return data.permissions;
+    } catch (error) {
+      console.error(error.message);
+      return [];
+    }
+  };
 
   const initialize = async () => {
     // Prevent from calling twice in development mode with React.StrictMode enabled
@@ -87,10 +114,12 @@ export const AuthProvider = (props) => {
         name: 'Anika Visser',
         email: 'anika.visser@devias.io'
       };
+      // hey copilot can you write fetchPermissions function for me?
+      const permissions = await fetchPermissions();  // Fetch permissions here
 
       dispatch({
         type: HANDLERS.INITIALIZE,
-        payload: user
+        payload: { user, permissions }
       });
     } else {
       dispatch({
@@ -123,7 +152,7 @@ export const AuthProvider = (props) => {
 
     dispatch({
       type: HANDLERS.SIGN_IN,
-      payload: user
+      payload: { user, permissions: [] }  // Placeholder for permissions
     });
   };
 
@@ -140,8 +169,12 @@ export const AuthProvider = (props) => {
       window.localStorage.setItem('token', result.token);
       window.localStorage.setItem('role', result.role);
       window.sessionStorage.setItem('authenticated', 'true');
+
+      const permissions = await fetchPermissions();  // Fetch permissions here
+
       dispatch({
-        type: HANDLERS.SIGN_IN
+        type: HANDLERS.SIGN_IN,
+        payload: { user: result.user, permissions }
       });
     } else {
       throw new Error(result.error || 'Login failed'); // Hata mesajını döndür
@@ -188,7 +221,11 @@ export const AuthProvider = (props) => {
     window.sessionStorage.clear();
 
     dispatch({
-      type: HANDLERS.SIGN_OUT
+      type: HANDLERS.SIGN_OUT,
+      payload: {
+        user: null,
+        permissions: []
+      }
     });
   };
 

@@ -1,10 +1,13 @@
 import { useEffect, useCallback, useMemo, useState } from 'react';
 import Head from 'next/head';
-import { Box, Container } from '@mui/material';
+import { Box, Button, Container, Stack, SvgIcon, Typography } from '@mui/material';
 import { useSelection } from 'src/hooks/use-selection';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { EsignsTable } from '../sections/esign/esign-table';
 import { applyPagination } from 'src/utils/apply-pagination';
+import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
+import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
+import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 
 const useEsigns = (data, page, rowsPerPage) => {
   return useMemo(() => {
@@ -36,7 +39,7 @@ const Page = () => {
         setLoading(true);
         const token = localStorage.getItem('token');
         const response = await fetch('http://localhost:3000/esigns', {
-          method: 'GET',
+          method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -88,24 +91,39 @@ const Page = () => {
           py: 8
         }}
       >
-        <Container>
-          {loading ? (
-            <div>Loading...</div>
-          ) : (
-            <EsignsTable
-              count={esigns.length}
-              items={esigns}
-              onDeselectAll={esignsSelection.handleDeselectAll}
-              onDeselectOne={esignsSelection.handleDeselectOne}
-              onPageChange={handlePageChange}
-              onRowsPerPageChange={handleRowsPerPageChange}
-              onSelectAll={esignsSelection.handleSelectAll}
-              onSelectOne={esignsSelection.handleSelectOne}
-              page={page}
-              rowsPerPage={rowsPerPage}
-              selected={esignsSelection.selected}
-            />
-          )}
+        <Container maxWidth="xl">
+          <Stack spacing={3}>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              spacing={4}
+            >
+              <Stack spacing={1}>
+                <Typography variant="h4">
+                  Esigns
+                </Typography>
+              </Stack>
+            </Stack>
+            {loading ? (
+              <div>Loading...</div>
+            ) : (
+              <EsignsTable
+                count={esigns.length}
+                items={esigns}
+                orders={esigns}
+                setOrders={setEsigns}
+                onDeselectAll={esignsSelection.handleDeselectAll}
+                onDeselectOne={esignsSelection.handleDeselectOne}
+                onPageChange={handlePageChange}
+                onRowsPerPageChange={handleRowsPerPageChange}
+                onSelectAll={esignsSelection.handleSelectAll}
+                onSelectOne={esignsSelection.handleSelectOne}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                selected={esignsSelection.selected}
+              />
+            )}
+          </Stack>
         </Container>
       </Box>
     </>

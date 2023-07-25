@@ -14,14 +14,18 @@ import {
 } from '@mui/material';
 import { Logo } from 'src/components/logo';
 import { Scrollbar } from 'src/components/scrollbar';
-import { items } from './config';
+import { useAuthContext } from 'src/contexts/auth-context';
+import { baseItems } from './config';
 import { SideNavItem } from './side-nav-item';
 
 export const SideNav = (props) => {
   const { open, onClose } = props;
   const pathname = usePathname();
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
+  const { permissions } = useAuthContext();
+  console.log("permissions", permissions);
 
+  const filteredItems = baseItems.filter(item => !item.permission || permissions.includes(item.permission));
   const content = (
     <Scrollbar
       sx={{
@@ -105,7 +109,7 @@ export const SideNav = (props) => {
               m: 0
             }}
           >
-            {items.map((item) => {
+            {filteredItems.map((item) => {
               const active = item.path ? (pathname === item.path) : false;
 
               return (

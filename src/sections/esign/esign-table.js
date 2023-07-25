@@ -14,7 +14,7 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  Typography, Grid, Divider
+  Typography, Grid, Divider, Tooltip, CircularProgress
 } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
 
@@ -26,7 +26,9 @@ export const EsignsTable = (props) => {
     onRowsPerPageChange,
     page = 0,
     rowsPerPage = 0,
-    selected = []
+    selected = [],
+    orders,
+    setOrders
   } = props;
 
   const [open, setOpen] = useState(false);
@@ -39,6 +41,57 @@ export const EsignsTable = (props) => {
 
   const handleClose = () => {
     setOpen(false);
+  };
+
+  const handleConfirm = async (id) => {
+    const token = localStorage.getItem('token');
+    try {
+      // Send a request to the /orderConfirm/:id endpoint
+      const response = await fetch(`http://localhost:3000/orderConfirm/${id}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to confirm order with id ${id}`);
+      }
+
+      const updatedOrder = await response.json();
+      // After the request to /orderConfirm/:id is successful, update the order in the state
+      setOrders((prevOrders) => prevOrders.map((order) => order.id === id
+        ? updatedOrder
+        : order));
+    } catch (error) {
+      console.error(error);
+      // Optionally show an error message to the user
+    }
+  };
+
+  const handleCheck = async (id) => {
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch(`http://localhost:3000/orderStatus/${id}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to check order with id ${id}`);
+      }
+
+      const updatedOrder = await response.json();
+      // After the request to /orderStatus/:id is successful, update the order in the state
+      setOrders((prevOrders) => prevOrders.map((order) => order.id === id
+        ? updatedOrder
+        : order));
+    } catch (error) {
+      console.error(error);
+      // Optionally show an error message to the user
+    }
   };
 
   return (
@@ -62,6 +115,16 @@ export const EsignsTable = (props) => {
                   Phone
                 </TableCell>
                 <TableCell>
+                  Siparis Durumu
+                </TableCell>
+                <TableCell>
+                  Siparis Detayi
+                </TableCell>
+                <TableCell>
+                  Siparisi Onayla
+                </TableCell>
+                <TableCell>
+                  Siparisi Kontrol Et
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -95,8 +158,35 @@ export const EsignsTable = (props) => {
                       {esign.telefon}
                     </TableCell>
                     <TableCell>
+                      <Tooltip title={esign.statusDetails}>
+                        <Typography variant="subtitle2">
+                          {esign.status}
+                        </Typography>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell>
                       <Button onClick={() => handleClickOpen(esign)}>
                         Detaylar
+                      </Button>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleConfirm(esign.id)}
+                        disabled={esign.status !== 'Yeni'}
+                      >
+                        Onayla
+                      </Button>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleCheck(esign.id)}
+                        disabled={esign.status !== 'Musteri Onayi Bekleniyor'}
+                      >
+                        {esign.status === 'Kontrol Ediliyor' ? <CircularProgress size={24} /> : 'Kontrol Et'}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -145,6 +235,8 @@ export const EsignsTable = (props) => {
 EsignsTable.propTypes = {
   count: PropTypes.number,
   items: PropTypes.array,
+  orders: PropTypes.array,
+  setOrders: PropTypes.any,
   onPageChange: PropTypes.func,
   onRowsPerPageChange: PropTypes.func,
   onSelectAll: PropTypes.func,

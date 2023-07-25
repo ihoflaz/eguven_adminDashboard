@@ -104,6 +104,8 @@ const Page = () => {
             <EsignsTable
               count={esigns.length}
               items={esigns}
+              orders={esigns}
+              setOrders={setEsigns}
               onDeselectAll={esignsSelection.handleDeselectAll}
               onDeselectOne={esignsSelection.handleDeselectOne}
               onPageChange={handlePageChange}
