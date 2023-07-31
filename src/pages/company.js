@@ -48,7 +48,6 @@ const Page = () => {
           }
         });
         const data = await response.json();
-        console.log('data', data);
         setData(data);
       } catch (err) {
         console.error(err);
@@ -124,7 +123,6 @@ const Page = () => {
       ...newUserData,
       companyId: selectedCompany.id // add the companyId to the request body
     };
-    console.log('userDataWithCompanyId', userDataWithCompanyId);
 
     try {
       const token = localStorage.getItem('token');

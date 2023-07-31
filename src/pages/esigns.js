@@ -108,7 +108,7 @@ const Page = () => {
               <div>Loading...</div>
             ) : (
               <EsignsTable
-                count={esigns.length}
+                count={data.length}
                 items={esigns}
                 orders={esigns}
                 setOrders={setEsigns}

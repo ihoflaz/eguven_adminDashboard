@@ -160,6 +160,15 @@ const Page = () => {
                 >
                   Continue
                 </Button>
+                <Link
+                    component={NextLink}
+                    href="/auth/forgot-password"
+                    underline="hover"
+                    variant="subtitle2"
+                    sx={{ mt: 3 }}
+                >
+                  Forgot password?
+                </Link>
               </form>
             )}
           </div>

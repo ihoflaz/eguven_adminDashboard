@@ -6,7 +6,7 @@ import { SvgIcon } from '@mui/material';
 
 export const baseItems = [
   {
-    title: 'Overview',
+    title: 'Genel Bakış',
     path: '/',
     icon: (
       <SvgIcon fontSize="small">
@@ -15,25 +15,27 @@ export const baseItems = [
     )
   },
   {
-    title: 'Users',
+    title: 'Kullanıcılar',
     path: '/users',
     icon: (
       <SvgIcon fontSize="small">
         <UsersIcon />
       </SvgIcon>
-    )
+    ),
+    permission: 'user:read'
   },
   {
-    title: 'Esign',
+    title: 'Siparişler',
     path: '/esigns',
     icon: (
       <SvgIcon fontSize="small">
         <ListBulletIcon />
       </SvgIcon>
-    )
+    ),
+    permission: 'order:read'
   },
   {
-    title: 'Companies',
+    title: 'Şirketler',
     path: '/company',
     icon: (
       <SvgIcon fontSize="small">

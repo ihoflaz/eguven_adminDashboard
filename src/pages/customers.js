@@ -178,11 +178,8 @@ const Page = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const customers = useCustomers(page, rowsPerPage);
-  console.log("customers",customers);
   const customersIds = useCustomerIds(customers);
-  console.log("customersIds",customersIds);
   const customersSelection = useSelection(customersIds);
-  console.log("customersSelection",customersSelection);
 
   const handlePageChange = useCallback(
     (event, value) => {

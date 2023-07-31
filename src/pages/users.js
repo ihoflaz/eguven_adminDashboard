@@ -215,7 +215,7 @@ const Page = () => {
               <UsersTable
                 users={users}
                 setUsers={setUsers}
-                count={users.length}
+                count={data.length}
                 items={users}
                 initialData={users}
                 onDeselectAll={userSelection.handleDeselectAll}

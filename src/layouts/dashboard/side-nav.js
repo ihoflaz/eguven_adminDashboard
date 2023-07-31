@@ -23,7 +23,6 @@ export const SideNav = (props) => {
   const pathname = usePathname();
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
   const { permissions } = useAuthContext();
-  console.log("permissions", permissions);
 
   const filteredItems = baseItems.filter(item => !item.permission || permissions.includes(item.permission));
   const content = (
